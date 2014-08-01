@@ -34,6 +34,6 @@ angular.module("CRABMonitor").
         }).//for quick search routing
             when("/search-view", {
                 templateUrl: searchTmpUrl+"search-view.html",
-                controller: "SearchCtrl"
+               controller: "SearchCtrl"
 		})
 	});
