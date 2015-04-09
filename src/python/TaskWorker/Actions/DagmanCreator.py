@@ -714,66 +714,66 @@ class DagmanCreator(TaskAction.TaskAction):
     def executeInternal(self, *args, **kw):
 
         cwd = None
-        if hasattr(self.config, 'TaskWorker') and hasattr(self.config.TaskWorker, 'scratchDir'):
-            temp_dir = tempfile.mkdtemp(prefix='_' + kw['task']['tm_taskname'], dir=self.config.TaskWorker.scratchDir)
-
-            # FIXME: In PanDA, we provided the executable as a URL.
-            # So, the filename becomes http:// -- and doesn't really work.  Hardcoding the analysis wrapper.
-            #transform_location = getLocation(kw['task']['tm_transformation'], 'CAFUtilities/src/python/transformation/CMSRunAnalysis/')
-            transform_location = getLocation('CMSRunAnalysis.sh', 'CRABServer/scripts/')
-            cmscp_location = getLocation('cmscp.py', 'CRABServer/scripts/')
-            gwms_location = getLocation('gWMS-CMSRunAnalysis.sh', 'CRABServer/scripts/')
-            dag_bootstrap_location = getLocation('dag_bootstrap_startup.sh', 'CRABServer/scripts/')
-            bootstrap_location = getLocation("dag_bootstrap.sh", "CRABServer/scripts/")
-            adjust_location = getLocation("AdjustSites.py", "CRABServer/scripts/")
-
-            cwd = os.getcwd()
-            os.chdir(temp_dir)
-            shutil.copy(transform_location, '.')
-            shutil.copy(cmscp_location, '.')
-            shutil.copy(gwms_location, '.')
-            shutil.copy(dag_bootstrap_location, '.')
-            shutil.copy(bootstrap_location, '.')
-            shutil.copy(adjust_location, '.')
-
-            # Bootstrap the ISB if we are using UFC
-            if UserFileCache and kw['task']['tm_cache_url'].find('/crabcache')!=-1:
-                ufc = UserFileCache(dict={'cert': kw['task']['user_proxy'], 'key': kw['task']['user_proxy'], 'endpoint' : kw['task']['tm_cache_url']})
-                try:
-                    ufc.download(hashkey=kw['task']['tm_user_sandbox'].split(".")[0], output="sandbox.tar.gz")
-                except Exception, ex:
-                    self.logger.exception(ex)
-                    raise TaskWorker.WorkerExceptions.TaskWorkerException("The CRAB3 server backend could not download the input sandbox with your code "+\
-                                        "from the frontend (crabcache component).\nThis could be a temporary glitch; please try to submit a new task later "+\
-                                        "(resubmit will not work) and contact the experts if the error persists.\nError reason: %s" % str(ex)) #TODO url!?
-                kw['task']['tm_user_sandbox'] = 'sandbox.tar.gz'
-
-            # Bootstrap the runtime if it is available.
-            job_runtime = getLocation('CMSRunAnalysis.tar.gz', 'CRABServer/')
-            shutil.copy(job_runtime, '.')
-            task_runtime = getLocation('TaskManagerRun.tar.gz', 'CRABServer/')
-            shutil.copy(task_runtime, '.')
-
-            kw['task']['scratch'] = temp_dir
-
-        kw['task']['resthost'] = self.server['host']
-        kw['task']['resturinoapi'] = self.restURInoAPI
-        self.task = kw['task']
-
-        params = {}
-        if kw['task']['tm_dry_run'] == 'F':
-            params = self.sendDashboardTask()
-
-        inputFiles = ['gWMS-CMSRunAnalysis.sh', 'CMSRunAnalysis.sh', 'cmscp.py', 'RunJobs.dag', 'Job.submit', 'dag_bootstrap.sh', \
-                      'AdjustSites.py', 'site.ad', 'site.ad.json', 'run_and_lumis.tar.gz']
-        if kw['task'].get('tm_user_sandbox') == 'sandbox.tar.gz':
-            inputFiles.append('sandbox.tar.gz')
-        if os.path.exists("CMSRunAnalysis.tar.gz"):
-            inputFiles.append("CMSRunAnalysis.tar.gz")
-        if os.path.exists("TaskManagerRun.tar.gz"):
-            inputFiles.append("TaskManagerRun.tar.gz")
-
         try:
+            if hasattr(self.config, 'TaskWorker') and hasattr(self.config.TaskWorker, 'scratchDir'):
+                temp_dir = tempfile.mkdtemp(prefix='_' + kw['task']['tm_taskname'], dir=self.config.TaskWorker.scratchDir)
+
+                # FIXME: In PanDA, we provided the executable as a URL.
+                # So, the filename becomes http:// -- and doesn't really work.  Hardcoding the analysis wrapper.
+                #transform_location = getLocation(kw['task']['tm_transformation'], 'CAFUtilities/src/python/transformation/CMSRunAnalysis/')
+                transform_location = getLocation('CMSRunAnalysis.sh', 'CRABServer/scripts/')
+                cmscp_location = getLocation('cmscp.py', 'CRABServer/scripts/')
+                gwms_location = getLocation('gWMS-CMSRunAnalysis.sh', 'CRABServer/scripts/')
+                dag_bootstrap_location = getLocation('dag_bootstrap_startup.sh', 'CRABServer/scripts/')
+                bootstrap_location = getLocation("dag_bootstrap.sh", "CRABServer/scripts/")
+                adjust_location = getLocation("AdjustSites.py", "CRABServer/scripts/")
+
+                cwd = os.getcwd()
+                os.chdir(temp_dir)
+                shutil.copy(transform_location, '.')
+                shutil.copy(cmscp_location, '.')
+                shutil.copy(gwms_location, '.')
+                shutil.copy(dag_bootstrap_location, '.')
+                shutil.copy(bootstrap_location, '.')
+                shutil.copy(adjust_location, '.')
+
+                # Bootstrap the ISB if we are using UFC
+                if UserFileCache and kw['task']['tm_cache_url'].find('/crabcache')!=-1:
+                    ufc = UserFileCache(dict={'cert': kw['task']['user_proxy'], 'key': kw['task']['user_proxy'], 'endpoint' : kw['task']['tm_cache_url']})
+                    try:
+                        ufc.download(hashkey=kw['task']['tm_user_sandbox'].split(".")[0], output="sandbox.tar.gz")
+                    except Exception, ex:
+                        self.logger.exception(ex)
+                        raise TaskWorker.WorkerExceptions.TaskWorkerException("The CRAB3 server backend could not download the input sandbox with your code "+\
+                                            "from the frontend (crabcache component).\nThis could be a temporary glitch; please try to submit a new task later "+\
+                                            "(resubmit will not work) and contact the experts if the error persists.\nError reason: %s" % str(ex)) #TODO url!?
+                    kw['task']['tm_user_sandbox'] = 'sandbox.tar.gz'
+
+                # Bootstrap the runtime if it is available.
+                job_runtime = getLocation('CMSRunAnalysis.tar.gz', 'CRABServer/')
+                shutil.copy(job_runtime, '.')
+                task_runtime = getLocation('TaskManagerRun.tar.gz', 'CRABServer/')
+                shutil.copy(task_runtime, '.')
+
+                kw['task']['scratch'] = temp_dir
+
+            kw['task']['resthost'] = self.server['host']
+            kw['task']['resturinoapi'] = self.restURInoAPI
+            self.task = kw['task']
+
+            params = {}
+            if kw['task']['tm_dry_run'] == 'F':
+                params = self.sendDashboardTask()
+
+            inputFiles = ['gWMS-CMSRunAnalysis.sh', 'CMSRunAnalysis.sh', 'cmscp.py', 'RunJobs.dag', 'Job.submit', 'dag_bootstrap.sh', \
+                          'AdjustSites.py', 'site.ad', 'site.ad.json', 'run_and_lumis.tar.gz']
+            if kw['task'].get('tm_user_sandbox') == 'sandbox.tar.gz':
+                inputFiles.append('sandbox.tar.gz')
+            if os.path.exists("CMSRunAnalysis.tar.gz"):
+                inputFiles.append("CMSRunAnalysis.tar.gz")
+            if os.path.exists("TaskManagerRun.tar.gz"):
+                inputFiles.append("TaskManagerRun.tar.gz")
+
             info, splitterResult = self.createSubdag(*args, **kw)
         finally:
             if cwd:
