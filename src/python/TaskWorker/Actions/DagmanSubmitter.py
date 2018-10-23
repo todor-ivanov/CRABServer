@@ -88,7 +88,8 @@ SUBMIT_INFO = [ \
     ('CRAB_ASODB', 'tm_asodb'),
     ('CRAB_FailedNodeLimit', 'faillimit'),
     ('CRAB_DashboardTaskType', 'taskType'),
-    ('CRAB_MaxPost', 'maxpost')]
+    ('CRAB_MaxPost', 'maxpost'),
+    ('CRAB_activity', 'activity')]
 
 
 def addCRABInfoToClassAd(ad, info):
@@ -382,6 +383,10 @@ class DagmanSubmitter(TaskAction.TaskAction):
         info['resthost'] = '"%s"' % (self.server['host'])
         #info['resthost'] = self.config.TaskWorker.resturl
         info['resturinoapi'] = '"%s"' % (self.restURInoAPI)
+        try:
+            info['activity'] = task['tm_activity']
+        except KeyError as e:
+            info['activity'] = "Unknown"
 
         try:
             info['remote_condor_setup'] = ''
