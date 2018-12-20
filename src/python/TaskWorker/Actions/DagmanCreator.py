@@ -115,6 +115,11 @@ accounting_group_user = %(accounting_group_user)s
 +CRAB_SplitAlgo =  %(splitalgo)s
 +CRAB_AlgoArgs = %(algoargs)s
 
+# The CMS_WMTool; see https://github.com/dmwm/CRABServer/issues/5666
++CMS_WMTool = %(cms_wmtool)s
++CMS_TaskType = %(cms_tasktype)s
+
+
 # These attributes help gWMS decide what platforms this job can run on; see https://twiki.cern.ch/twiki/bin/view/CMSPublic/CompOpsMatchArchitecture
 +DESIRED_Archs = %(desired_arch)s
 +DESIRED_CMSDataset = %(inputdata)s
@@ -407,6 +412,23 @@ class DagmanCreator(TaskAction.TaskAction):
             return getattr(self.config.TaskWorker, 'dashboardTaskType', 'analysistest')
         return task['tm_activity']
 
+    def isHCTask(self, task):
+        if re.search('^HC.*', task['tm_activity']):
+            return True
+        else:
+            return False
+
+    def setCMS_WMTool(self, task):
+        if self.isHCTask(task):
+            return 'HammerCloud'
+        return 'USER'
+
+    def setCMS_TaskType(self, task):
+        if self.isHCTask(task):
+            return task['tm_activity']
+        else:
+            # here to find the paramenter from user's crabConfig
+            return 
 
     def isGlobalBlacklistIgnored(self, kwargs):
         """ Determine wether the user wants to ignore the globalblacklist
@@ -471,6 +493,10 @@ class DagmanCreator(TaskAction.TaskAction):
         info['retry_aso'] = 1 if getattr(self.config.TaskWorker, 'retryOnASOFailures', True) else 0
         info['aso_timeout'] = getattr(self.config.TaskWorker, 'ASOTimeout', 0)
         info['submitter_ip_addr'] = task['tm_submitter_ip_addr']
+
+        # Classad attributes relative to HC/User activity:
+        info['cms_wmtool'] = self.setCMS_WMTool(task)
+        info['cms_tasktype'] = self.setCMS_TaskType(task)
 
         #Classads for task lifetime management, see https://github.com/dmwm/CRABServer/issues/5505
         info['task_lifetime_days'] = TASKLIFETIME // 24 // 60 // 60
